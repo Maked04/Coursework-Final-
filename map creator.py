@@ -20,28 +20,72 @@ def redraw_window(win,button_map_list):
         for button in button_row:
             button.draw_button(win)
 
-created_map_list = []
-button_map_list = []
 
-# Loop which runs for the number of tiles in a column by taking height divided by tile size
-for y in range(int(height/size)):
-    created_map_list.append([])
-    button_map_list.append([])
-    # Loop which runs for the number of tiles in a row by taking width divided by tile size
-    for x in range(int(width / size)):
-        # All tiles around the edge should by default be a block so create a button in that position but set it's
-        # clicked variable to true and add it to the button map list in the correct position
-        # Add one to created map list to represent it's a block tile
-        if x == 0 or y == 0 or y == (int(height/size)-1) or x == (int(width/size)-1):
-            created_map_list[y].append(1)
-            button = Button((x * size), (y * size), size, size, (0, 0, 0), (0, 0, 255), (255, 0, 0), "B", None, 16)
-            button.clicked = True
-            button_map_list[y].append(button)
-        # Any tile that's not on the edge we create a button which will have a clicked variable of false
-        # Add a 0 to the created map list to represent it's an air tile
-        else:
-            created_map_list[y].append(0)
-            button_map_list[y].append(Button((x * size), (y * size), size, size, (0, 0, 0), (0,0,255), (255, 0, 0), "B", None, 16))
+
+def load_map(rle_map):
+    # Decompress from rle
+    normal_list = []
+    for y in range(0, len(rle_map)):
+        normal_list.append([])
+        for x in range(0, len(rle_map[y]), 3):
+            count = (int(rle_map[y][x])*10)+int(rle_map[y][x+1])
+            for i in range(count):
+                normal_list[y].append(int(rle_map[y][x+2]))
+    list1 = []
+    list2 = []
+    # Based on existing map create a clicked button where ever there was a 1 in the existing map and a non clicked
+    # button wherever there is a 0 in the existing map. Do the same for a list but add "1" or "0" instead of a button,
+    # this is the list that is used at the end for saving it too a file.
+    for y in range(len(normal_list)):
+        list1.append([])
+        list2.append([])
+        for x in range(len(normal_list[0])):
+            if str(normal_list[y][x]) == "1":
+                list1[y].append(1)
+                button = Button((x * size), (y * size), size, size, (0, 0, 0), (0, 0, 255), (255, 0, 0), "B", None, 16)
+                button.clicked = True
+                list2[y].append(button)
+            else:
+                list1[y].append(0)
+                list2[y].append(
+                    Button((x * size), (y * size), size, size, (0, 0, 0), (0, 0, 255), (255, 0, 0), "B", None, 16))
+    return list1, list2
+
+def new_map():
+    list1 = []
+    list2 = []
+    # Loop which runs for the number of tiles in a column by taking height divided by tile size
+    for y in range(int(height/size)):
+        list1.append([])
+        list2.append([])
+        # Loop which runs for the number of tiles in a row by taking width divided by tile size
+        for x in range(int(width / size)):
+            # All tiles around the edge should by default be a block so create a button in that position but set it's
+            # clicked variable to true and add it to the button map list in the correct position
+            # Add one to created map list to represent it's a block tile
+            if x == 0 or y == 0 or y == (int(height/size)-1) or x == (int(width/size)-1):
+                list1[y].append(1)
+                button = Button((x * size), (y * size), size, size, (0, 0, 0), (0, 0, 255), (255, 0, 0), "B", None, 16)
+                button.clicked = True
+                list2[y].append(button)
+            # Any tile that's not on the edge we create a button which will have a clicked variable of false
+            # Add a 0 to the created map list to represent it's an air tile
+            else:
+                list1[y].append(0)
+                list2[y].append(Button((x * size), (y * size), size, size, (0, 0, 0), (0,0,255), (255, 0, 0), "B", None, 16))
+    return list1, list2
+# If the admin wants to alter an existing map then they can enter 2 or 1 for creating a new map, when altering a map
+# it loads the map that's currently in the map.txt file
+
+
+option = int(input("Enter (1) for new map   Enter (2) for existing map: "))
+while option != 1 and option != 2:
+    option = int(input("Enter (1) for new map   Enter (2) for existing map: "))
+if option == 1:
+    created_map_list, button_map_list = new_map()
+elif option == 2:
+    rleMap = open("map.txt", "r").read().splitlines()
+    created_map_list, button_map_list = load_map(rleMap)
 
 
 running = True
